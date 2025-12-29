@@ -1,41 +1,30 @@
-def calculate_valuation(fin):
-    """
-    fin = Dictionary mit Finanzdaten
-    Erwartete Keys:
-    price, eps, book_value, equity, net_profit
-    """
+def calculate_pe_ratio(price, eps):
+    """ KGV = aktueller Preis / Gewinn je Aktie """
+    if eps == 0:
+        return None
+    return round(price / eps, 2)
 
-    price = fin.get("price")
-    eps = fin.get("eps")
-    book = fin.get("book_value")
-    equity = fin.get("equity")
-    profit = fin.get("net_profit")
 
-    result = {}
+def calculate_fair_value(pe, eps, target_pe=12):
+    """ Einfaches Fair-Value Modell """
+    if eps == 0:
+        return None
+    return round(eps * target_pe, 2)
 
-    # KGV
-    result["KGV"] = price / eps if eps and eps > 0 else None
 
-    # PD/DD
-    result["PD_DD"] = price / book if book and book > 0 else None
+def evaluate_stock(price, eps):
+    """ Einfache Bewertung für Start – später erweitern wir Ranking Systeme """
+    pe = calculate_pe_ratio(price, eps)
+    fair_value = calculate_fair_value(pe, eps)
 
-    # ROE
-    result["ROE"] = profit / equity if equity and equity > 0 else None
-
-    # Score
-    score = 0
-    if result["KGV"] and result["KGV"] < 10:
-        score += 1
-    if result["PD_DD"] and result["PD_DD"] < 1.5:
-        score += 1
-    if result["ROE"] and result["ROE"] > 0.15:
-        score += 1
-
-    result["Score"] = score
-    result["Bewertung"] = (
-        "Günstig" if score >= 2 else
-        "Neutral" if score == 1 else
-        "Teuer"
-    )
-
+    result = {
+        "KGV": pe,
+        "FairValue": fair_value,
+        "Upside (%)": None if fair_value is None else round(((fair_value - price) / price) * 100, 2)
+    }
+    
     return result
+
+
+if __name__ == "__main__":
+    print(evaluate_stock(price=40, eps=3))
